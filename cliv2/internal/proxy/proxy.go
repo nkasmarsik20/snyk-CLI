@@ -163,6 +163,7 @@ func (p *WrapperProxy) ProxyInfo() *ProxyInfo {
 const headerSnykAuthFailed = "snyk-auth-failed"
 
 func (p *WrapperProxy) replaceVersionHandler(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+	fmt.Printf("\n***REQ***: %s%s", r.URL.Host, r.URL.Path)
 	if err := p.addHeaderFunc(r); err != nil {
 		if errors.Is(err, middleware.ErrAuthenticationFailed) {
 			r.Header.Set(headerSnykAuthFailed, "true")
@@ -199,6 +200,7 @@ func (p *WrapperProxy) Start() error {
 	proxy.OnRequest().DoFunc(p.replaceVersionHandler)
 	proxy.OnRequest().HandleConnect(p)
 	proxy.OnResponse().DoFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+		fmt.Printf("\n***RESP***: %d", resp.StatusCode)
 		networking.LogResponse(resp, p.DebugLogger)
 
 		if authFailed := resp.Request.Header.Get(headerSnykAuthFailed); authFailed != "" {

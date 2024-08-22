@@ -285,9 +285,24 @@ func defaultCmd(args []string) error {
 	// prepare the invocation of the legacy CLI by
 	// * enabling stdio
 	// * by specifying the raw cmd args for it
-	globalConfiguration.Set(configuration.WORKFLOW_USE_STDIO, true)
+
+	/**
+	native shim can detect command args here and control the workflow IO
+	e.g. if args is [test] then the snyk test commmand was run in human-readable outout
+	setting WORKFLOW_USE_STDIO to false will send TS CLI output to a buffer by default
+	this will be returned as 'data' in `data, err := globalEngine.Invoke(basic_workflows.WORKFLOWID_LEGACY_CLI)`
+	'data' can then be used in the shim workflow
+	*/
+	globalConfiguration.Set(configuration.WORKFLOW_USE_STDIO, false)
 	globalConfiguration.Set(configuration.RAW_CMD_ARGS, args)
-	_, err := globalEngine.Invoke(basic_workflows.WORKFLOWID_LEGACY_CLI)
+	fmt.Printf("\n*** args *** : %s", args)
+	data, err := globalEngine.Invoke(basic_workflows.WORKFLOWID_LEGACY_CLI)
+
+	// print data
+	for _, d := range data {
+		fmt.Printf("\n*** exit code *** : %s", err)
+		fmt.Printf("\n*** DATA *** : %s", d.GetPayload())
+	}
 	return err
 }
 
